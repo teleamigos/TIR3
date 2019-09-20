@@ -11,3 +11,7 @@ message=input("Type a message : ")
 F=Flooding(src)#Inicializa el objeto solo con la direccion en la que nos conectamos
 F.create_payload(1,message)#Crea payload con Id por defecto
 msj_out=F.create_package(dst)#Mensaje de salida
+
+"""-----------------unpacking------------------"""
+
+F.Unpack_message(msj_out)
