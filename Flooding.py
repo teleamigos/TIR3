@@ -6,7 +6,7 @@ import zlib
 ---------------------------------------------------------------"""
 
 class Flooding:
-    def __init__(self):
+    def __init__(self,my_usr):
         self.user={
         'A': b'\xc8\xe0\xeb\x38\xc8\xd3',
         'B': b'\xc8\xe0\xeb\x38\xc8\xd3',
@@ -19,6 +19,8 @@ class Flooding:
         self.ethertype=b"\x08\x01"
         self.payload=""
         self.crc=""
+        self.my_add=self.user[my_usr]
+
 
     def create_payload(self,id,msj):
         """Creating a payload"""
@@ -40,7 +42,7 @@ class Flooding:
         print("message received : ",msj_rcved)
         L=len(msj_rcved)
         self.dst_add=msj_rcved[0:6]
-        if self.dst_add==b'\xc8\xe0\xeb\x38\xc8\xd3':
+        if self.dst_add==self.my_add:
             """the direction is correct"""
             self.src_add=msj_rcved[7:12]
             data=self.Unpack_payload(msj_rcved[14:L-4])
