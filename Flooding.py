@@ -46,12 +46,13 @@ class Flooding:
             """the direction is correct"""
             self.src_add=msj_rcved[7:12]
             data=self.Unpack_payload(msj_rcved[14:L-4])
-            self.crc=unpack('!I',msj_rcved)
+            self.crc=unpack('!I',msj_rcved[L-4:])
             return data
         else :
             """The direction is wrong"""
             print("Message received is not for this computer...")
             print("retransmiting...")
+            return '0'
 
     def Unpack_payload(self,payload_rcved):
         """Unpack payload"""
@@ -60,3 +61,8 @@ class Flooding:
         print(ID,L)
         msj=payload_rcved[3:].decode('utf-8')
         return ID,msj
+
+    def Increase_ID(self,message):
+        """Increase the ID of the message"""
+        ID=unpack('!B',message[15:16])[0]
+        print("ID :" ,ID)
