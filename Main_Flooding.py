@@ -18,12 +18,12 @@ op=input("Type Y/n to send a message ")
 while True:
     if op=='Y':
         dst_user=input("Type the user you want to send something : " )
-        message=input("Type a message you want to send to {} :".format{dst_user})
+        message=input("Type a message you want to send to {} :".format(dst_user))
         F.create_payload(0,message)
         msj_out=F.create_package(usr_name,dst_user)
         #Abrimos nuevo hilo para enviar
     msj=s.recv(1024)
-    if not data:
+    if not msj:
         print("Not infomation...")
         break
     if F.Unpack_message(msj)!='0':
