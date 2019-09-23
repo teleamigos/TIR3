@@ -4,8 +4,7 @@ import socket
 
 
     # local host IP '127.0.0.1'
-host = '127.0.0.1'
-
+host = '192.168.100.14'
     # Define the port on which you want to connect
 port = 12345
 
@@ -35,4 +34,4 @@ while True:
     else:
         break
     # close the connection
-s.close() 
+s.close()

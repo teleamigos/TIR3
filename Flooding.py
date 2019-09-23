@@ -8,9 +8,9 @@ import zlib
 class Flooding:
     def __init__(self,my_usr):
         self.user={
-        'A': b'\xc8\xe0\xeb\x38\xc8\xd3',
-        'B': b'\xc8\xe0\xeb\x38\xc8\xd3',
-        'C': b'\xc8\xe0\xeb\x38\xc8\xd3',
+        'A': b'\x94\x53\x30\x44\xca\x7f',
+        'B': b'\xb4\xd5\xbd\xc3\x20\xee',
+        'C': b'\x50\x3e\xaa\xb3\x00\x46',
         'D': b'\xc8\xe0\xeb\x38\xc8\xd3'
         }
         """class initialization"""
