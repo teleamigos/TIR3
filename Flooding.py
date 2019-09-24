@@ -1,68 +1,65 @@
 from struct import *
 import zlib
-#import crc16
 
-"""----------------------class flooding---------------------------
----------------------------------------------------------------"""
+"""----------------------class flooding-----------------------------------------
+-----------------------------------------------------------------------------"""
 
 class Flooding:
     def __init__(self,my_usr):
-        self.user={
-        'A': b'\x94\x53\x30\x44\xca\x7f',
-        'B': b'\xb4\xd5\xbd\xc3\x20\xee',
-        'C': b'\x50\x3e\xaa\xb3\x00\x46',
-        'D': b'\xc8\xe0\xeb\x38\xc8\xd3'
-        }
         """class initialization"""
-        self.src_add=""
-        self.dst_add=""
-        self.ethertype=b"\x08\x01"
-        self.payload=""
-        self.crc=""
-        self.my_add=self.user[my_usr]
+        self.user={
+        'A' : 255,
+        'B' : 260,
+        'C' : 300,
+        'D' : 400
+        }
+        self.my_add=b'\x94\x53\x30\x44\xca\x7f'
+        self.broadcast=b'\xff\xff\xff\xff\xff\xff'
+        self.my_ID=self.user[my_usr]
+        self.ethertype=b'\x08\x01'
+        self.sequence=0
+        self.message_h=[]
 
+    def create_payload(self,usr_dst,message):
+        payload=pack('!QH',self.sequence,self.user[usr_dst])
+        payload += bytes(message,'utf-8')
+        return payload
 
-    def create_payload(self,id,msj):
-        """Creating a payload"""
-        L=len(msj)+3#La longitud del mensaje mas tres bytes, uno ID y dos de long.
-        self.payload=pack('!BH',id,L)+bytes(msj,'utf-8')#Concatena ID, long y msj.
-        print("payload for this package : ",self.payload)
-
-    def create_package(self,src,dst):
-        """Creating a package"""
-        self.src_add=self.user[src]
-        self.dst_add=self.user[dst]#Direccion MAC destino
-        self.crc=pack('!I',zlib.crc32(self.payload))#Calcula CRC32
-        msj_out=self.dst_add+self.src_add+self.ethertype+self.payload+self.crc
-        print("To send : ",msj_out)
+    def create_package(self,dst_add,src_add,payload):
+        crc=pack('!I',zlib.crc32(payload))
+        msj_out=dst_add+src_add+self.ethertype+payload+crc
+        print(msj_out)
         return msj_out
 
-    def Unpack_message(self,msj_rcved):
-        """Unpack the message received"""
-        print("message received : ",msj_rcved)
-        L=len(msj_rcved)
-        self.dst_add=msj_rcved[0:6]
-        if self.dst_add==self.my_add:
-            """the direction is correct"""
-            self.src_add=msj_rcved[7:12]
-            data=self.Unpack_payload(msj_rcved[14:L-4])
-            self.crc=unpack('!I',msj_rcved[L-4:])
-            return data
-        else :
-            """The direction is wrong"""
-            print("Message received is not for this computer...")
-            print("retransmiting...")
+    def Unpack_message(self,msj):
+        L=len(msj)
+        ID=unpack('!H',msj[22:24])[0]
+        if ID==self.my_ID:
+            """This message is for me!!"""
+            payload=msj[14:L-4]
+            ID,msj_rcved=self.Unpack_payload(payload)
+            self.message_h.append((msj,self.sequence))
+            return ID, msj_rcved
+        else:
+            """This message is not for me!!!"""
             return '0'
 
-    def Unpack_payload(self,payload_rcved):
-        """Unpack payload"""
-        print("payload received : ",payload_rcved)
-        ID,L=unpack('!BH',payload_rcved[0:3])
-        print(ID,L)
-        msj=payload_rcved[3:].decode('utf-8')
-        return ID,msj
+    def retransmitting(self,msj,payload):
+        seq=unpack('!Q',payload[:8])[0]
+        ID=unpack('!H',payload[8:10])[0]
+        message=payload[10:].decode('utf-8')
+        seq +=1
+        for u in self.user:
+            if self.user[u]==ID:
+                dst_user=u
+        self.sequence=seq
+        new_payload=self.create_payload(dst_user,message)
+        dst_add=msj[:6]
+        src_add=msj[6:12]
+        new_msj=self.create_package(dst_add,src_add,new_payload)
+        return new_msj
 
-    def Increase_ID(self,message):
-        """Increase the ID of the message"""
-        ID=unpack('!B',message[15:16])[0]
-        print("ID :" ,ID)
+    def Unpack_payload(self,payload):
+        self.sequence,ID=unpack('!QH',payload[:10])
+        message=payload[10:].decode('utf-8')
+        return ID,message
