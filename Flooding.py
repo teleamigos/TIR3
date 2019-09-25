@@ -38,8 +38,9 @@ class Flooding:
             """This message is for me!!"""
             payload=msj[14:L-4]
             ID,msj_rcved=self.Unpack_payload(payload)
-            self.message_h.append((msj,self.sequence))
-            return ID, msj_rcved
+            self.message_h.append((msj_rcved,self.sequence,ID))
+            print("IN THE HISTORY : ",self.message_h)
+            return ID, msj_rcved,msj[6:12]
         else:
             """This message is not for me!!!"""
             return '0'
@@ -52,7 +53,7 @@ class Flooding:
         for u in self.user:
             if self.user[u]==ID:
                 dst_user=u
-        self.sequence=seq
+        self.sequence +=seq
         new_payload=self.create_payload(dst_user,message)
         dst_add=msj[:6]
         src_add=msj[6:12]

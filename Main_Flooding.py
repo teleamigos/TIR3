@@ -15,11 +15,13 @@ F=Flooding(usr_name)
 #s.bind(("wlp1s0",0))
 print("Your user ID   : ",F.my_ID)
 c=0
+ID=0
 """-----------------------------------------------------------------------------
 --------------------------------User-----------------------------------------"""
 op=input('Enter "Y" to send a message : ')
 while True:
     if op=='Y':
+        print(F.sequence,ID,F.my_ID)
         if F.sequence==0:
             """First message"""
             dst_user=input("Type the user you want to send something (A,B,C or D) : " )
@@ -33,9 +35,18 @@ while True:
             #thread1.start()
             #print("------------")
             #thread1.join()
-        else :
+        elif ID==F.my_ID:
             """This is not a first message"""
             message=input("Type a message you want to send to {} with ID {} :".format(dst_user,F.user[dst_user]))
+            payload=F.create_payload(dst_user,message)
+            print("payload : ",payload)
+            msj_out=F.create_package(dst_add,F.my_add,payload)
+            print("Message to ID {}  and sequence {} to send  : ".format(F.user[dst_user],F.sequence),msj_out)
+            #start=time.time()
+            #thread1=Thread(target=threaded_send,args=(msj_out,s))
+            #thread1.start()
+            #print("------------")
+            #thread1.join()
 
     #msj=s.recv(1024)
     """    if not msj:
@@ -43,14 +54,18 @@ while True:
             break"""
     if F.Unpack_message(msj_out)!='0':
         """Unpack de message"""
-        ID,message=F.Unpack_message(msj_out)
+        ID,message,dst_add=F.Unpack_message(msj_out)
         print('Message received from ID : {}'.format(ID),message)
         for u in F.user:
             if F.user[u]==ID:
                 dst_user=u
         op=input('Type "Y" to reply to the user {}'.format(dst_user) )
         F.sequence +=1
-
+        if op !='Y':
+            F.sequence=0
+            ID=0
+            op='Y'
+        
     else :
         """Retransmitting"""
         L=len(msj_out)
@@ -62,3 +77,4 @@ while True:
         #thread1.start()
         #print("------------")
         #thread1.join()
+        F.sequence=0
