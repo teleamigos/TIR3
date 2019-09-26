@@ -1,5 +1,6 @@
 from struct import *
 import zlib
+import binascii
 
 """----------------------class flooding-----------------------------------------
 -----------------------------------------------------------------------------"""
@@ -26,7 +27,8 @@ class Flooding:
         return payload
 
     def create_package(self,dst_add,src_add,payload):
-        crc=pack('!I',zlib.crc32(payload))
+        #crc=pack('!I',zlib.crc32(dst_add+src_add+self.ethertype+payload))
+        crc=pack('!L',binascii.crc32(dst_add+src_add+self.ethertype+payload))
         msj_out=dst_add+src_add+self.ethertype+payload+crc
         print(msj_out)
         return msj_out
@@ -34,15 +36,12 @@ class Flooding:
     def Unpack_message(self,msj):
         L=len(msj)
         ID=unpack('!H',msj[22:24])[0]
-        if ID==self.my_ID:
-            """This message is for me!!"""
-            payload=msj[14:L-4]
-            ID,msj_rcved=self.Unpack_payload(payload)
-            self.message_h.append((msj,self.sequence))
-            return ID, msj_rcved
-        else:
-            """This message is not for me!!!"""
-            return '0'
+        payload=msj[14:L-4]
+        ID,msj_rcved=self.Unpack_payload(payload)
+        self.message_h.append((msj_rcved,self.sequence,ID))
+        print("IN THE HISTORY : ",self.message_h)
+        return ID, msj_rcved,msj[6:12]
+
 
     def retransmitting(self,msj,payload):
         seq=unpack('!Q',payload[:8])[0]
@@ -52,7 +51,7 @@ class Flooding:
         for u in self.user:
             if self.user[u]==ID:
                 dst_user=u
-        self.sequence=seq
+        self.sequence +=seq
         new_payload=self.create_payload(dst_user,message)
         dst_add=msj[:6]
         src_add=msj[6:12]
@@ -63,3 +62,27 @@ class Flooding:
         self.sequence,ID=unpack('!QH',payload[:10])
         message=payload[10:].decode('utf-8')
         return ID,message
+
+    def Iscorrect(self,msj):
+        L=len(msj)
+        ID=unpack('!H',msj[22:24])[0]
+        crc=unpack('!L',msj[L-4:])[0]
+        crc2=binascii.crc32(msj[:L-4])
+        print(crc,crc2)
+        if ID==self.my_ID and crc==crc2:
+            return '1'
+        else:
+            return '0'
+
+    def IsRepeated(self,msj):
+        L=len(msj)
+        payload=msj[14:L-4]
+        seq=unpack('!Q',msj[14:22])[0]
+        ID,message=self.Unpack_payload(payload)
+        if len(self.message_h)==0:
+            return '1'
+        else:
+            for h in self.message_h:
+                if h[1]==seq and h[2]==ID and h[0]==message:
+                    return '0'
+            return '1'
