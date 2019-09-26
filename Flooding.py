@@ -51,7 +51,7 @@ class Flooding:
         for u in self.user:
             if self.user[u]==ID:
                 dst_user=u
-        self.sequence +=seq
+        #self.sequence +=seq
         new_payload=self.create_payload(dst_user,message)
         dst_add=msj[:6]
         src_add=msj[6:12]
@@ -63,7 +63,7 @@ class Flooding:
         message=payload[10:].decode('utf-8')
         return ID,message
 
-    def Iscorrect(self,msj):
+    """def Iscorrect(self,msj):
         L=len(msj)
         ID=unpack('!H',msj[22:24])[0]
         crc=unpack('!L',msj[L-4:])[0]
@@ -85,4 +85,13 @@ class Flooding:
             for h in self.message_h:
                 if h[1]==seq and h[2]==ID and h[0]==message:
                     return '0'
+            return '1'"""
+
+    def Iscorrect(self,msj):
+        L=len(msj)
+        ID=unpack('!H',msj[22:24])[0]
+        crc=unpack('!L',msj[L-4:])[0]
+        crc2=binascii.crc32(msj[:L-4])
+        if ID==self.my_ID and crc==crc2:
             return '1'
+        elif :
